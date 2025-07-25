@@ -42,6 +42,64 @@ const servers = [
   { name: 'best5', nameKorean: '베스트파이브' },
 ];
 
+let dummyUsers = [
+  {
+    profileUrl: 'http://cataas.com/cat',
+    nickname: '에임장인',
+    rate: {
+      premier: 2100,
+      fiveE: 1800,
+      best5: null,
+    },
+    playableMaps: ['dust2', 'mirage', 'nuke'],
+    preferredModes: ['premier', 'competitive'],
+    age: 21,
+    updateDate: '2024-06-05T15:30:00.000Z',
+  },
+  {
+    profileUrl: 'http://cataas.com/cat',
+    nickname: '전략가',
+    rate: {
+      premier: null,
+      fiveE: 1700,
+      best5: 1500,
+    },
+    playableMaps: ['inferno', 'anubis', 'overpass'],
+    preferredModes: ['wingman', 'deathmatch'],
+    age: 30,
+    updateDate: '2024-06-03T18:45:00.000Z',
+  },
+  {
+    profileUrl: 'http://cataas.com/cat',
+    nickname: '뉴비',
+    rate: {
+      premier: 1000,
+      fiveE: null,
+      best5: null,
+    },
+    playableMaps: ['italy', 'office'],
+    preferredModes: ['casual', 'community_server'],
+    age: 19,
+    updateDate: '2024-06-02T12:10:00.000Z',
+  },
+  {
+    profileUrl: 'http://cataas.com/cat',
+    nickname: '맵마스터',
+    rate: {
+      premier: 2500,
+      fiveE: null,
+      best5: 1600,
+    },
+    playableMaps: ['vertigo', 'train', 'grail', 'agency'],
+    preferredModes: ['premier', 'arms_race'],
+    age: 42,
+    updateDate: '2024-06-06T07:30:00.000Z',
+  },
+];
+dummyUsers = dummyUsers.sort(
+  (a, b) => new Date(a.updateDate).getTime() - new Date(b.updateDate).getTime()
+);
+console.log(dummyUsers);
 const toggleElement = (arr: Array<any>, value: any) => {
   return arr.includes(value)
     ? arr.filter((element) => element !== value)
@@ -62,11 +120,11 @@ function Home() {
     rate: {
       serverType: 'cs2_premier',
       minScore: 0,
-      maxScore: Infinity,
+      maxScore: 30000,
     },
-    playableMaps: [],
-    preferredModes: [],
-    preferredAges: [],
+    playableMaps: [...maps.map(({ name }) => name)],
+    preferredModes: [...modes.map(({ name }) => name)],
+    preferredAges: [...ages.map(({ range }) => range)],
   });
 
   const setRate = ({
@@ -110,6 +168,21 @@ function Home() {
         preferredAges: toggleElement(filterStatus.preferredAges, ageRange),
       };
     });
+  const [userArray, setUserArray] = useState<
+    {
+      profileUrl: string;
+      nickname: string;
+      rate: {
+        premier: number | null;
+        fiveE: number | null;
+        best5: number | null;
+      };
+      playableMaps: string[];
+      preferredModes: string[];
+      age: number;
+      updateDate: string;
+    }[]
+  >(dummyUsers);
   return (
     <>
       <Link to='/'>
@@ -123,6 +196,7 @@ function Home() {
             type='number'
             name='rate_score'
             id='min_score'
+            value={filterStatus.rate.minScore}
             onChange={(e) => setRate({ minScore: parseInt(e.target.value) })}
           />{' '}
           ~{' '}
@@ -130,6 +204,7 @@ function Home() {
             type='number'
             name='rate_score'
             id='max_score'
+            value={filterStatus.rate.maxScore}
             onChange={(e) => setRate({ maxScore: parseInt(e.target.value) })}
           />{' '}
           <br />
@@ -154,6 +229,7 @@ function Home() {
                 type='checkbox'
                 name='map'
                 id={`map_${name}`}
+                checked={filterStatus.playableMaps.includes(name)}
                 onChange={() => {
                   setPrayableMaps(name);
                 }}
@@ -170,6 +246,7 @@ function Home() {
                 type='checkbox'
                 name='mode'
                 id={`mode_${name}`}
+                checked={filterStatus.preferredModes.includes(name)}
                 onChange={() => {
                   setPreferredModes(name);
                 }}
@@ -187,6 +264,7 @@ function Home() {
               type='checkbox'
               name='mode'
               id={`age_${range}`}
+              checked={filterStatus.preferredAges.includes(range)}
               onChange={() => {
                 setPreferredAges(range);
               }}
@@ -194,6 +272,50 @@ function Home() {
             <label htmlFor={`age_${range}`}>{koreanName}</label>
           </>
         ))}
+      </div>
+      <div>
+        {userArray.map(
+          (
+            {
+              profileUrl,
+              nickname,
+              rate,
+              playableMaps,
+              age,
+              preferredModes,
+              updateDate,
+            },
+            index
+          ) => {
+            return (
+              <div>
+                <Link to={`/profile/${index}`}>
+                  <img
+                    src={profileUrl}
+                    width={50}
+                    height={50}
+                    alt='profile_picture'
+                  />{' '}
+                  / {nickname} /
+                  {rate.premier ? `프리미어: ${rate.premier}` : ''}
+                  {rate.fiveE ? `5E: ${rate.fiveE}` : ''}
+                  {rate.best5 ? `베스트파이브: ${rate.best5}` : ''}/
+                  {maps
+                    .filter(({ name }) => playableMaps.includes(name))
+                    .map(({ nameKorean }) => nameKorean)
+                    .join(',')}
+                  /
+                  {modes
+                    .filter(({ name }) => preferredModes.includes(name))
+                    .map(({ nameKorean }) => nameKorean)
+                    .join(',')}
+                  / {age}세 / 갱신일 :{' '}
+                  {new Date(updateDate).toLocaleDateString()}
+                </Link>
+              </div>
+            );
+          }
+        )}
       </div>
     </>
   );
