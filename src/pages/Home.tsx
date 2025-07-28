@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
-
+import { dummyUsers } from '../mocks/dummyUsers';
 const ages = [
   { range: 'private', serverValue: 0, koreanName: '비공개' },
   { range: '20_or_less', serverValue: 20, koreanName: '20대 이하' },
@@ -42,63 +42,6 @@ const servers = [
   { name: 'best5', nameKorean: '베스트파이브' },
 ];
 
-let dummyUsers = [
-  {
-    profileUrl: 'http://cataas.com/cat',
-    nickname: '에임장인',
-    rate: {
-      premier: 2100,
-      fiveE: 1800,
-      best5: null,
-    },
-    playableMaps: ['dust2', 'mirage', 'nuke'],
-    preferredModes: ['premier', 'competitive'],
-    age: 21,
-    updateDate: '2024-06-05T15:30:00.000Z',
-  },
-  {
-    profileUrl: 'http://cataas.com/cat',
-    nickname: '전략가',
-    rate: {
-      premier: null,
-      fiveE: 1700,
-      best5: 1500,
-    },
-    playableMaps: ['inferno', 'anubis', 'overpass'],
-    preferredModes: ['wingman', 'deathmatch'],
-    age: 30,
-    updateDate: '2024-06-03T18:45:00.000Z',
-  },
-  {
-    profileUrl: 'http://cataas.com/cat',
-    nickname: '뉴비',
-    rate: {
-      premier: 1000,
-      fiveE: null,
-      best5: null,
-    },
-    playableMaps: ['italy', 'office'],
-    preferredModes: ['casual', 'community_server'],
-    age: 19,
-    updateDate: '2024-06-02T12:10:00.000Z',
-  },
-  {
-    profileUrl: 'http://cataas.com/cat',
-    nickname: '맵마스터',
-    rate: {
-      premier: 2500,
-      fiveE: null,
-      best5: 1600,
-    },
-    playableMaps: ['vertigo', 'train', 'grail', 'agency'],
-    preferredModes: ['premier', 'arms_race'],
-    age: 42,
-    updateDate: '2024-06-06T07:30:00.000Z',
-  },
-];
-dummyUsers = dummyUsers.sort(
-  (a, b) => new Date(a.updateDate).getTime() - new Date(b.updateDate).getTime()
-);
 console.log(dummyUsers);
 const toggleElement = (arr: Array<any>, value: any) => {
   return arr.includes(value)
