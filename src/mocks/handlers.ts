@@ -23,12 +23,26 @@ export const handlers = [
     } = await request.json();
     return HttpResponse.json(
       dummyUsers.filter(({ rate, preferredModes, age, playableMaps }) => {
-        if (!map_selection.some((name) => playableMaps.includes(name)))
+        if (!map_selection.some((name) => playableMaps.includes(name))) {
           return false;
-        if (!mode_preference.some((name) => preferredModes.includes(name)))
-          return false;
-        if (!age_preference.includes(age)) return false;
+        }
 
+        if (!mode_preference.some((name) => preferredModes.includes(name))) {
+          return false;
+        }
+
+        if (0 < age && age <= 29 && !age_preference.includes(20)) {
+        }
+        if (age === 0 && !age_preference.includes(0)) {
+          return false;
+        }
+
+        if (30 <= age && age <= 39 && !age_preference.includes(30)) {
+          return false;
+        }
+        if (40 <= age && !age_preference.includes(40)) {
+          return false;
+        }
         if (rate.premier === null && server === 'cs2_premier') return false;
         if (rate.fiveE === null && server === 'fiveE') return false;
         if (rate.best5 === null && server === 'best5') return false;
