@@ -11,7 +11,7 @@ interface User {
   playableMaps: string[];
   preferredModes: string[];
   age: number;
-  updateDate: string;
+  updateDate: string | null;
 }
 
 export const dummyUsers: User[] = [
