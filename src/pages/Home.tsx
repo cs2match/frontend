@@ -106,7 +106,7 @@ function Home() {
     setUserArray(
       fetchedJson.sort(
         (a, b) =>
-          new Date(a.updateDate).getTime() - new Date(b.updateDate).getTime()
+          new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime()
       )
     );
   };
@@ -285,7 +285,11 @@ function Home() {
                     .map(({ nameKorean }) => nameKorean)
                     .join(',')}
                   / {age}세 / 갱신일 :{' '}
-                  {new Date(updateDate).toLocaleDateString()}
+                  {Math.floor(
+                    (new Date().getTime() - new Date(updateDate).getTime()) /
+                      (24 * 60 * 60000)
+                  )}
+                  일 전
                 </Link>
               </div>
             );
