@@ -2,45 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
 import { dummyUsers } from '../mocks/dummyUsers';
-const ages = [
-  { range: 'private', serverValue: 0, koreanName: '비공개' },
-  { range: '20_or_less', serverValue: 20, koreanName: '20대 이하' },
-  { range: '30', serverValue: 30, koreanName: '30대' },
-  { range: '40_or_more', serverValue: 40, koreanName: '40대 이상' },
-];
-const maps = [
-  { name: 'dust2', nameKorean: '더스트2' },
-  { name: 'inferno', nameKorean: '인페르노' },
-  { name: 'mirage', nameKorean: '신기루' },
-  { name: 'nuke', nameKorean: '뉴크' },
-  { name: 'anubis', nameKorean: '아누비스' },
-  { name: 'ancient', nameKorean: '고대' },
-  { name: 'italy', nameKorean: '이탈리아' },
-  { name: 'office', nameKorean: '사무실' },
-  { name: 'overpass', nameKorean: '오버패스' },
-  { name: 'vertigo', nameKorean: '버티고' },
-  { name: 'train', nameKorean: '열차' },
-  { name: 'jura', nameKorean: '쥐라' },
-  { name: 'grail', nameKorean: '그레일' },
-  { name: 'agency', nameKorean: '에이전시' },
-];
-
-const modes = [
-  { name: 'premier', nameKorean: '프리미어' },
-  { name: 'competitive', nameKorean: '경쟁' },
-  { name: 'wingman', nameKorean: '윙맨' },
-  { name: 'arms_race', nameKorean: '무기레이스' },
-  { name: 'deathmatch', nameKorean: '데스매치' },
-  { name: 'casual', nameKorean: '캐주얼' },
-  { name: 'community_server', nameKorean: '커뮤니티 서버' },
-];
-
-const servers = [
-  { name: 'cs2_premier', nameKorean: '프리미어' },
-  { name: 'fiveE', nameKorean: '5E' },
-  { name: 'faceit', nameKorean: '페이스잇' },
-  { name: 'best5', nameKorean: '베스트파이브' },
-];
+import { maps } from '../constants/map';
+import { servers } from '../constants/server';
+import { ages } from '../constants/age';
+import { modes } from '../constants/mode';
 
 console.log(dummyUsers);
 const toggleElement = (arr: Array<any>, value: any) => {
@@ -72,7 +37,7 @@ interface User {
   playableMaps: string[];
   preferredModes: string[];
   age: number;
-  updateDate: string;
+  updateDate: string | null;
 }
 
 function Home() {
@@ -88,7 +53,18 @@ function Home() {
   });
 
   const fetchUserList = async (filterStatus: filterStatus) => {
-    const fetchedJson: User[] = await (
+    const fetchedJson: {
+      id: number;
+      name: string;
+      premier_rating: number | null;
+      fiveE_rating: number | null;
+      best5_rating: number | null;
+      faceit_rating: number | null;
+      map_selection: string[];
+      mode_preference: string[];
+      age: number;
+      date: string | null;
+    }[] = await (
       await fetch('/userlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,10 +81,41 @@ function Home() {
       })
     ).json();
     setUserArray(
-      fetchedJson.sort(
-        (a, b) =>
-          new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime()
-      )
+      fetchedJson
+        .sort(
+          (a, b) =>
+            new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+        )
+        .map(
+          ({
+            id,
+            name,
+            fiveE_rating,
+            best5_rating,
+            faceit_rating,
+            premier_rating,
+            map_selection,
+            mode_preference,
+            age,
+            date,
+          }): User => {
+            return {
+              id,
+              nickname: name,
+              profileUrl: 'https://cataas.com/cat',
+              rate: {
+                premier: premier_rating,
+                best5: best5_rating,
+                fiveE: fiveE_rating,
+                faceit: faceit_rating,
+              },
+              playableMaps: map_selection,
+              preferredModes: mode_preference,
+              age,
+              updateDate: date,
+            };
+          }
+        )
     );
   };
 
@@ -261,36 +268,38 @@ function Home() {
             updateDate,
           }) => {
             return (
-              <div key={id}>
-                <Link to={`/profile/${id}`}>
-                  <img
-                    src={profileUrl}
-                    width={50}
-                    height={50}
-                    alt='profile_picture'
-                  />{' '}
-                  / {nickname} /
-                  {rate.premier ? `프리미어: ${rate.premier}` : ''}
-                  {rate.fiveE ? `5E: ${rate.fiveE}` : ''}
-                  {rate.faceit ? `페이스잇: ${rate.faceit}` : ''}
-                  {rate.best5 ? `베스트파이브: ${rate.best5}` : ''}/
-                  {maps
-                    .filter(({ name }) => playableMaps.includes(name))
-                    .map(({ nameKorean }) => nameKorean)
-                    .join(',')}
-                  /
-                  {modes
-                    .filter(({ name }) => preferredModes.includes(name))
-                    .map(({ nameKorean }) => nameKorean)
-                    .join(',')}
-                  / {age}세 / 갱신일 :{' '}
-                  {Math.floor(
-                    (new Date().getTime() - new Date(updateDate).getTime()) /
-                      (24 * 60 * 60000)
-                  )}
-                  일 전
-                </Link>
-              </div>
+              updateDate && (
+                <div key={id}>
+                  <Link to={`/profile/${id}`}>
+                    <img
+                      src={profileUrl}
+                      width={50}
+                      height={50}
+                      alt='profile_picture'
+                    />{' '}
+                    / {nickname} /
+                    {rate.premier ? `프리미어: ${rate.premier}` : ''}
+                    {rate.fiveE ? `5E: ${rate.fiveE}` : ''}
+                    {rate.faceit ? `페이스잇: ${rate.faceit}` : ''}
+                    {rate.best5 ? `베스트파이브: ${rate.best5}` : ''}/
+                    {maps
+                      .filter(({ name }) => playableMaps.includes(name))
+                      .map(({ nameKorean }) => nameKorean)
+                      .join(',')}
+                    /
+                    {modes
+                      .filter(({ name }) => preferredModes.includes(name))
+                      .map(({ nameKorean }) => nameKorean)
+                      .join(',')}
+                    / {age}세 / 갱신일 :{' '}
+                    {Math.floor(
+                      (new Date().getTime() - new Date(updateDate).getTime()) /
+                        (24 * 60 * 60000)
+                    )}
+                    일 전
+                  </Link>
+                </div>
+              )
             );
           }
         )}

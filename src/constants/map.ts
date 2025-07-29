@@ -1,0 +1,16 @@
+export const maps = [
+  { name: 'dust2', nameKorean: '더스트2' },
+  { name: 'inferno', nameKorean: '인페르노' },
+  { name: 'mirage', nameKorean: '신기루' },
+  { name: 'nuke', nameKorean: '뉴크' },
+  { name: 'anubis', nameKorean: '아누비스' },
+  { name: 'ancient', nameKorean: '고대' },
+  { name: 'italy', nameKorean: '이탈리아' },
+  { name: 'office', nameKorean: '사무실' },
+  { name: 'overpass', nameKorean: '오버패스' },
+  { name: 'vertigo', nameKorean: '버티고' },
+  { name: 'train', nameKorean: '열차' },
+  { name: 'jura', nameKorean: '쥐라' },
+  { name: 'grail', nameKorean: '그레일' },
+  { name: 'agency', nameKorean: '에이전시' },
+];
