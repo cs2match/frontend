@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
 import { dummyUsers } from '../mocks/dummyUsers';
@@ -37,7 +37,7 @@ const modes = [
 
 const servers = [
   { name: 'cs2_premier', nameKorean: '프리미어' },
-  { name: '5e', nameKorean: '5E' },
+  { name: 'fiveE', nameKorean: '5E' },
   { name: 'faceit', nameKorean: '페이스잇' },
   { name: 'best5', nameKorean: '베스트파이브' },
 ];
@@ -48,18 +48,34 @@ const toggleElement = (arr: Array<any>, value: any) => {
     ? arr.filter((element) => element !== value)
     : [...arr, value];
 };
+interface filterStatus {
+  rate: {
+    serverType: string;
+    minScore: number;
+    maxScore: number;
+  };
+  playableMaps: string[];
+  preferredModes: string[];
+  preferredAges: string[];
+}
+
+interface User {
+  profileUrl: string;
+  nickname: string;
+  rate: {
+    premier: number | null;
+    fiveE: number | null;
+    best5: number | null;
+    faceit: number | null;
+  };
+  playableMaps: string[];
+  preferredModes: string[];
+  age: number;
+  updateDate: string;
+}
 
 function Home() {
-  const [filterStatus, setFilter] = useState<{
-    rate: {
-      serverType: string;
-      minScore: number;
-      maxScore: number;
-    };
-    playableMaps: string[];
-    preferredModes: string[];
-    preferredAges: string[];
-  }>({
+  const [filterStatus, setFilter] = useState<filterStatus>({
     rate: {
       serverType: 'cs2_premier',
       minScore: 0,
@@ -69,6 +85,35 @@ function Home() {
     preferredModes: [...modes.map(({ name }) => name)],
     preferredAges: [...ages.map(({ range }) => range)],
   });
+
+  const fetchUserList = async (filterStatus: filterStatus) => {
+    const fetchedJson: User[] = await (
+      await fetch('/userlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          server: filterStatus.rate.serverType,
+          rating_min: filterStatus.rate.minScore,
+          rating_max: filterStatus.rate.maxScore,
+          map_selection: filterStatus.playableMaps,
+          mode_preference: filterStatus.preferredModes,
+          age_preference: ages
+            .filter(({ range }) => filterStatus.preferredAges.includes(range))
+            .map(({ serverValue }) => serverValue),
+        }),
+      })
+    ).json();
+    setUserArray(
+      fetchedJson.sort(
+        (a, b) =>
+          new Date(a.updateDate).getTime() - new Date(b.updateDate).getTime()
+      )
+    );
+  };
+
+  useEffect(() => {
+    fetchUserList(filterStatus);
+  }, [filterStatus]);
 
   const setRate = ({
     serverType,
@@ -111,21 +156,7 @@ function Home() {
         preferredAges: toggleElement(filterStatus.preferredAges, ageRange),
       };
     });
-  const [userArray, setUserArray] = useState<
-    {
-      profileUrl: string;
-      nickname: string;
-      rate: {
-        premier: number | null;
-        fiveE: number | null;
-        best5: number | null;
-      };
-      playableMaps: string[];
-      preferredModes: string[];
-      age: number;
-      updateDate: string;
-    }[]
-  >(dummyUsers);
+  const [userArray, setUserArray] = useState<User[]>([]);
   return (
     <>
       <Link to='/'>
@@ -242,6 +273,7 @@ function Home() {
                   / {nickname} /
                   {rate.premier ? `프리미어: ${rate.premier}` : ''}
                   {rate.fiveE ? `5E: ${rate.fiveE}` : ''}
+                  {rate.faceit ? `페이스잇: ${rate.faceit}` : ''}
                   {rate.best5 ? `베스트파이브: ${rate.best5}` : ''}/
                   {maps
                     .filter(({ name }) => playableMaps.includes(name))
