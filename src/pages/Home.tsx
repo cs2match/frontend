@@ -60,6 +60,7 @@ interface filterStatus {
 }
 
 interface User {
+  id: number;
   profileUrl: string;
   nickname: string;
   rate: {
@@ -249,21 +250,19 @@ function Home() {
       </div>
       <div>
         {userArray.map(
-          (
-            {
-              profileUrl,
-              nickname,
-              rate,
-              playableMaps,
-              age,
-              preferredModes,
-              updateDate,
-            },
-            index
-          ) => {
+          ({
+            id,
+            profileUrl,
+            nickname,
+            rate,
+            playableMaps,
+            age,
+            preferredModes,
+            updateDate,
+          }) => {
             return (
-              <div>
-                <Link to={`/profile/${index}`}>
+              <div key={id}>
+                <Link to={`/profile/${id}`}>
                   <img
                     src={profileUrl}
                     width={50}
