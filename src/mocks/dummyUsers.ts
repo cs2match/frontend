@@ -1,4 +1,19 @@
-export const dummyUsers = [
+interface User {
+  profileUrl: string;
+  nickname: string;
+  rate: {
+    premier: number | null;
+    fiveE: number | null;
+    best5: number | null;
+    faceit: number | null;
+  };
+  playableMaps: string[];
+  preferredModes: string[];
+  age: number;
+  updateDate: string;
+}
+
+export const dummyUsers: User[] = [
   {
     profileUrl: 'http://cataas.com/cat',
     nickname: '에임장인',
