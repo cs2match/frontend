@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import Home from './pages/Home.tsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Profile from './pages/Profile.tsx';
 async function enableMocking() {
   if (process.env.NODE_ENV !== 'development') {
     return;
@@ -20,6 +21,7 @@ enableMocking().then(() => {
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Home />} />
+          <Route path='/profile/:id' element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </StrictMode>
