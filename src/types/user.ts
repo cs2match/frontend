@@ -13,3 +13,15 @@ export interface User {
   age: number;
   updateDate: string | null;
 }
+export interface UserFromServer {
+  id: number;
+  name: string;
+  premier_rating: number | null;
+  fiveE_rating: number | null;
+  best5_rating: number | null;
+  faceit_rating: number | null;
+  map_selection: string[];
+  mode_preference: string[];
+  age: number;
+  date: string | null;
+}

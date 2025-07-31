@@ -5,25 +5,16 @@ import { maps } from '../constants/map';
 import { servers } from '../constants/server';
 import { ages } from '../constants/age';
 import { modes } from '../constants/mode';
-import type { User } from '../types/user';
+import type { User, UserFromServer } from '../types/user';
+import type { FilterStatus } from '../types/filter';
 const toggleElement = (arr: Array<any>, value: any) => {
   return arr.includes(value)
     ? arr.filter((element) => element !== value)
     : [...arr, value];
 };
-interface filterStatus {
-  rate: {
-    serverType: string;
-    minScore: number;
-    maxScore: number;
-  };
-  playableMaps: string[];
-  preferredModes: string[];
-  preferredAges: string[];
-}
 
 function Home() {
-  const [filterStatus, setFilter] = useState<filterStatus>({
+  const [filterStatus, setFilter] = useState<FilterStatus>({
     rate: {
       serverType: 'cs2_premier',
       minScore: 0,
@@ -34,19 +25,8 @@ function Home() {
     preferredAges: [...ages.map(({ range }) => range)],
   });
 
-  const fetchUserList = async (filterStatus: filterStatus) => {
-    const fetchedJson: {
-      id: number;
-      name: string;
-      premier_rating: number | null;
-      fiveE_rating: number | null;
-      best5_rating: number | null;
-      faceit_rating: number | null;
-      map_selection: string[];
-      mode_preference: string[];
-      age: number;
-      date: string | null;
-    }[] = await (
+  const fetchUserList = async (filterStatus: FilterStatus) => {
+    const fetchedJson: UserFromServer[] = await (
       await fetch('/userlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
