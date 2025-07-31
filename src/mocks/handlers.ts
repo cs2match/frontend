@@ -102,8 +102,26 @@ export const handlers = [
     );
   }),
   http.get<{ id: string }>('/user/:id', ({ params }) => {
-    return HttpResponse.json(
-      dummyUsers.filter(({ id }) => parseInt(params.id) === id)[0]
-    );
+    const {
+      rate,
+      age,
+      preferredModes,
+      playableMaps,
+      id,
+      nickname,
+      updateDate,
+    } = dummyUsers.filter(({ id }) => parseInt(params.id) === id)[0];
+    return HttpResponse.json({
+      id: id,
+      name: nickname,
+      date: updateDate,
+      premier_rating: rate.premier,
+      fiveE_rating: rate.fiveE,
+      faceit_rating: rate.faceit,
+      best5_rating: rate.best5,
+      map_selection: playableMaps,
+      mode_preference: preferredModes,
+      age,
+    });
   }),
 ];
