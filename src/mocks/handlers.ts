@@ -101,4 +101,9 @@ export const handlers = [
         )
     );
   }),
+  http.get<{ id: string }>('/user/:id', ({ params }) => {
+    return HttpResponse.json(
+      dummyUsers.filter(({ id }) => parseInt(params.id) === id)[0]
+    );
+  }),
 ];
