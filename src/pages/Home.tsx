@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
-import { dummyUsers } from '../mocks/dummyUsers';
 import { maps } from '../constants/map';
 import { servers } from '../constants/server';
 import { ages } from '../constants/age';
 import { modes } from '../constants/mode';
-
-console.log(dummyUsers);
+import type { User } from '../types/user';
 const toggleElement = (arr: Array<any>, value: any) => {
   return arr.includes(value)
     ? arr.filter((element) => element !== value)
@@ -22,22 +20,6 @@ interface filterStatus {
   playableMaps: string[];
   preferredModes: string[];
   preferredAges: string[];
-}
-
-interface User {
-  id: number;
-  profileUrl: string;
-  nickname: string;
-  rate: {
-    premier: number | null;
-    fiveE: number | null;
-    best5: number | null;
-    faceit: number | null;
-  };
-  playableMaps: string[];
-  preferredModes: string[];
-  age: number;
-  updateDate: string | null;
 }
 
 function Home() {
@@ -143,7 +125,7 @@ function Home() {
       };
     });
   };
-  const setPrayableMaps = (mapName: string) =>
+  const setPlayableMaps = (mapName: string) =>
     setFilter((filterStatus) => {
       return {
         ...filterStatus,
@@ -213,7 +195,7 @@ function Home() {
                 id={`map_${name}`}
                 checked={filterStatus.playableMaps.includes(name)}
                 onChange={() => {
-                  setPrayableMaps(name);
+                  setPlayableMaps(name);
                 }}
               />{' '}
               <label htmlFor={`map_${name}`}>{nameKorean}</label>
