@@ -1,22 +1,54 @@
 import { useEffect, useState } from 'react';
-import { dummyUsers } from '../mocks/dummyUsers';
 import { useParams } from 'react-router-dom';
 import { modes } from '../constants/mode';
 import { maps } from '../constants/map';
-import type { User } from '../types/user';
+import type { User, UserFromServer } from '../types/user';
 const toggleElement = (arr: Array<any>, value: any) => {
   return arr.includes(value)
     ? arr.filter((element) => element !== value)
     : [...arr, value];
 };
 export default function Profile() {
-  const fetchedUser = dummyUsers[0];
-  const [nowUser, setNowUser] = useState(fetchedUser);
+  const [nowUser, setNowUser] = useState<User>();
   const [isRateEditingNow, setIsRateEditingNow] = useState(false);
   const [isMapEditingNow, setIsMapEditingNow] = useState(false);
   const [isAgeEditingNow, setIsAgeEditingNow] = useState(false);
   const [isModeEditingNow, setIsModeEditingNow] = useState(false);
   const { id } = useParams();
+  const fetchUser = async (userId: string) => {
+    const {
+      id,
+      name,
+      best5_rating,
+      fiveE_rating,
+      faceit_rating,
+      premier_rating,
+      age,
+      mode_preference,
+      map_selection,
+      date,
+    }: UserFromServer = await (
+      await fetch(`/user/${userId}`, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ).json();
+    setNowUser({
+      id,
+      nickname: name,
+      profileUrl: 'https://cataas.com/cat',
+      rate: {
+        premier: premier_rating,
+        best5: best5_rating,
+        fiveE: fiveE_rating,
+        faceit: faceit_rating,
+      },
+      playableMaps: map_selection,
+      preferredModes: mode_preference,
+      age,
+      updateDate: date,
+    });
+  };
+
   const setRate = ({
     serverType,
     score,
@@ -24,7 +56,8 @@ export default function Profile() {
     serverType: string;
     score: number | null;
   }) => {
-    setNowUser((nowUser: User): User => {
+    setNowUser((nowUser) => {
+      if (!nowUser) return nowUser;
       switch (serverType) {
         case 'cs2_premier':
           return { ...nowUser, rate: { ...nowUser.rate, premier: score } };
@@ -39,264 +72,277 @@ export default function Profile() {
       }
     });
   };
-  const setPlayableMaps = (mapName: string) =>
-    setNowUser((nowUser) => {
+  const setPlayableMaps = (mapName: string) => {
+    return setNowUser((nowUser) => {
+      if (!nowUser) return nowUser;
       return {
         ...nowUser,
         playableMaps: toggleElement(nowUser.playableMaps, mapName),
       };
     });
+  };
   const setPreferrendModes = (modeName: string) =>
     setNowUser((nowUser) => {
+      if (!nowUser) return nowUser;
       return {
         ...nowUser,
         preferredModes: toggleElement(nowUser.preferredModes, modeName),
       };
     });
+
+  useEffect(() => {
+    if (id) fetchUser(id);
+  }, []);
+
+  if (!nowUser) return '죄송합니다. 현재 정보를 불러올 수 없습니다.';
   return (
     <>
-      <img src={nowUser.profileUrl} alt='프로필 사진' />
-      <br />
-      {nowUser.nickname}
-      <h2>레이팅</h2>
-      <button onClick={() => setIsRateEditingNow((nowValue) => !nowValue)}>
-        {isRateEditingNow ? '수정완료' : '수정'}
-      </button>
-      {nowUser.rate.premier && !isRateEditingNow ? (
-        <div>
-          <strong>프리미어</strong> {nowUser.rate.premier}
-        </div>
-      ) : (
-        ''
-      )}
+      <>
+        <img src={nowUser.profileUrl} alt='프로필 사진' />
+        <br />
+        {nowUser.nickname}
+        <h2>레이팅</h2>
+        <button onClick={() => setIsRateEditingNow((nowValue) => !nowValue)}>
+          {isRateEditingNow ? '수정완료' : '수정'}
+        </button>
+        {nowUser.rate.premier && !isRateEditingNow ? (
+          <div>
+            <strong>프리미어</strong> {nowUser.rate.premier}
+          </div>
+        ) : (
+          ''
+        )}
 
-      {isRateEditingNow && (
-        <div>
-          <strong>프리미어</strong>{' '}
-          <input
-            type='number'
-            value={nowUser.rate.premier ?? 1000}
-            disabled={nowUser.rate.premier === null}
-            name='score_input'
-            id='cs2_premier_score_input'
-            onChange={(e) =>
-              setRate({
-                serverType: 'cs2_premier',
-                score: parseInt(e.target.value),
-              })
-            }
-          />
-          <input
-            type='checkbox'
-            name='not_play'
-            id='cs2_premier_not_play'
-            checked={nowUser.rate.premier === null}
-            onChange={() =>
-              setRate({
-                serverType: 'cs2_premier',
-                score: nowUser.rate.premier === null ? 1000 : null,
-              })
-            }
-          />{' '}
-          <label htmlFor=''>이용안함</label>
-        </div>
-      )}
-      {nowUser.rate.fiveE && !isRateEditingNow ? (
-        <div>
-          <strong>5E</strong> {nowUser.rate.fiveE}
-        </div>
-      ) : (
-        ''
-      )}
-      {isRateEditingNow && (
-        <div>
-          <strong>5E</strong>{' '}
-          <input
-            type='number'
-            value={nowUser.rate.fiveE ?? 1000}
-            disabled={nowUser.rate.fiveE === null}
-            name='score_input'
-            id='fiveE_score_input'
-            onChange={(e) =>
-              setRate({
-                serverType: 'fiveE',
-                score: parseInt(e.target.value),
-              })
-            }
-          />
-          <input
-            type='checkbox'
-            name='not_play'
-            id='fiveE_not_play'
-            checked={nowUser.rate.fiveE === null}
-            onChange={() =>
-              setRate({
-                serverType: 'fiveE',
-                score: nowUser.rate.fiveE === null ? 1000 : null,
-              })
-            }
-          />{' '}
-          <label htmlFor=''>이용안함</label>
-        </div>
-      )}
-      {nowUser.rate.best5 && !isRateEditingNow ? (
-        <div>
-          <strong>베스트파이브</strong>
-          {nowUser.rate.best5}
-        </div>
-      ) : (
-        ''
-      )}
-      {isRateEditingNow && (
-        <div>
-          <strong>베스트파이브</strong>{' '}
-          <input
-            type='number'
-            value={nowUser.rate.best5 ?? 1000}
-            disabled={nowUser.rate.best5 === null}
-            name='score_input'
-            id='best5_score_input'
-            onChange={(e) =>
-              setRate({
-                serverType: 'best5',
-                score: parseInt(e.target.value),
-              })
-            }
-          />
-          <input
-            type='checkbox'
-            name='not_play'
-            id='best5_not_play'
-            checked={nowUser.rate.best5 === null}
-            onChange={() =>
-              setRate({
-                serverType: 'best5',
-                score: nowUser.rate.best5 === null ? 1000 : null,
-              })
-            }
-          />{' '}
-          <label htmlFor=''>이용안함</label>
-        </div>
-      )}
-      {nowUser.rate.faceit && !isRateEditingNow ? (
-        <div>
-          <strong>페이스잇 </strong>
-          {nowUser.rate.faceit}
-        </div>
-      ) : (
-        ''
-      )}
-      {isRateEditingNow && (
-        <div>
-          <strong>페이스잇</strong>{' '}
-          <input
-            type='number'
-            value={nowUser.rate.faceit ?? 1000}
-            disabled={nowUser.rate.faceit === null}
-            name='score_input'
-            id='best5_score_input'
-            onChange={(e) =>
-              setRate({
-                serverType: 'faceit',
-                score: parseInt(e.target.value),
-              })
-            }
-          />
-          <input
-            type='checkbox'
-            name='not_play'
-            id='best5_not_play'
-            checked={nowUser.rate.faceit === null}
-            onChange={() =>
-              setRate({
-                serverType: 'faceit',
-                score: nowUser.rate.faceit === null ? 1000 : null,
-              })
-            }
-          />{' '}
-          <label htmlFor=''>이용안함</label>
-        </div>
-      )}
-      <h2>가능맵</h2>
-      <button onClick={() => setIsMapEditingNow((nowValue) => !nowValue)}>
-        {isMapEditingNow ? '수정완료' : '수정'}
-      </button>
-      {!isMapEditingNow &&
-        maps
-          .filter(({ name }) => nowUser.playableMaps.includes(name))
-          .map(({ nameKorean }) => <span>{nameKorean} </span>)}
-
-      {isMapEditingNow &&
-        maps.map(({ name, nameKorean }) => (
-          <>
+        {isRateEditingNow && (
+          <div>
+            <strong>프리미어</strong>{' '}
+            <input
+              type='number'
+              value={nowUser.rate.premier ?? 1000}
+              disabled={nowUser.rate.premier === null}
+              name='score_input'
+              id='cs2_premier_score_input'
+              onChange={(e) =>
+                setRate({
+                  serverType: 'cs2_premier',
+                  score: parseInt(e.target.value),
+                })
+              }
+            />
             <input
               type='checkbox'
-              name='map_checkbox'
-              id={`map_checkbox_${name}`}
-              checked={nowUser.playableMaps.includes(name)}
-              onChange={() => setPlayableMaps(name)}
+              name='not_play'
+              id='cs2_premier_not_play'
+              checked={nowUser.rate.premier === null}
+              onChange={() =>
+                setRate({
+                  serverType: 'cs2_premier',
+                  score: nowUser.rate.premier === null ? 1000 : null,
+                })
+              }
+            />{' '}
+            <label htmlFor=''>이용안함</label>
+          </div>
+        )}
+        {nowUser.rate.fiveE && !isRateEditingNow ? (
+          <div>
+            <strong>5E</strong> {nowUser.rate.fiveE}
+          </div>
+        ) : (
+          ''
+        )}
+        {isRateEditingNow && (
+          <div>
+            <strong>5E</strong>{' '}
+            <input
+              type='number'
+              value={nowUser.rate.fiveE ?? 1000}
+              disabled={nowUser.rate.fiveE === null}
+              name='score_input'
+              id='fiveE_score_input'
+              onChange={(e) =>
+                setRate({
+                  serverType: 'fiveE',
+                  score: parseInt(e.target.value),
+                })
+              }
             />
-            <label htmlFor={`map_checkbox_${name}`}>{nameKorean} </label>
-          </>
-        ))}
-      <h2>나이</h2>
-      <button onClick={() => setIsAgeEditingNow((nowValue) => !nowValue)}>
-        {isAgeEditingNow ? '수정완료' : '수정'}
-      </button>
-      {nowUser.age > 0 && !isAgeEditingNow ? `${nowUser.age}세` : ''}
-      {nowUser.age === 0 && !isAgeEditingNow ? `비공개` : ''}
-      {isAgeEditingNow && (
-        <div>
-          <input
-            type='number'
-            name='age_number'
-            id='age_input'
-            value={nowUser.age}
-            disabled={nowUser.age === 0}
-            onChange={(e) =>
-              setNowUser((nowUser) => {
-                return { ...nowUser, age: parseInt(e.target.value) };
-              })
-            }
-          />
-          <input
-            type='checkbox'
-            name='age_private'
-            id='age_private_checkbox'
-            checked={nowUser.age === 0}
-            onChange={() =>
-              setNowUser((nowUser) => {
-                return { ...nowUser, age: nowUser.age === 0 ? 20 : 0 };
-              })
-            }
-          />
-          <label htmlFor='age_private_checkbox'>공개하고 싶지 않아요</label>
-        </div>
-      )}
-
-      <h2>선호 게임 모드</h2>
-      <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
-        {isModeEditingNow ? '수정완료' : '수정'}
-      </button>
-      {!isModeEditingNow &&
-        modes
-          .filter(({ name }) => nowUser.preferredModes.includes(name))
-          .map(({ nameKorean }) => <span>{nameKorean} </span>)}
-      {isModeEditingNow &&
-        modes.map(({ name, nameKorean }) => (
-          <>
             <input
               type='checkbox'
-              name='mode_checkbox'
-              id={`mode_checkbox_${name}`}
-              checked={nowUser.preferredModes.includes(name)}
-              onChange={() => setPreferrendModes(name)}
+              name='not_play'
+              id='fiveE_not_play'
+              checked={nowUser.rate.fiveE === null}
+              onChange={() =>
+                setRate({
+                  serverType: 'fiveE',
+                  score: nowUser.rate.fiveE === null ? 1000 : null,
+                })
+              }
+            />{' '}
+            <label htmlFor=''>이용안함</label>
+          </div>
+        )}
+        {nowUser.rate.best5 && !isRateEditingNow ? (
+          <div>
+            <strong>베스트파이브</strong>
+            {nowUser.rate.best5}
+          </div>
+        ) : (
+          ''
+        )}
+        {isRateEditingNow && (
+          <div>
+            <strong>베스트파이브</strong>{' '}
+            <input
+              type='number'
+              value={nowUser.rate.best5 ?? 1000}
+              disabled={nowUser.rate.best5 === null}
+              name='score_input'
+              id='best5_score_input'
+              onChange={(e) =>
+                setRate({
+                  serverType: 'best5',
+                  score: parseInt(e.target.value),
+                })
+              }
             />
-            <label htmlFor={`mode_checkbox_${name}`}>{nameKorean} </label>
-          </>
-        ))}
-      <button>갱신 후 리스트 올리기</button>
-      <button>채팅하기</button>
+            <input
+              type='checkbox'
+              name='not_play'
+              id='best5_not_play'
+              checked={nowUser.rate.best5 === null}
+              onChange={() =>
+                setRate({
+                  serverType: 'best5',
+                  score: nowUser.rate.best5 === null ? 1000 : null,
+                })
+              }
+            />{' '}
+            <label htmlFor=''>이용안함</label>
+          </div>
+        )}
+        {nowUser.rate.faceit && !isRateEditingNow ? (
+          <div>
+            <strong>페이스잇 </strong>
+            {nowUser.rate.faceit}
+          </div>
+        ) : (
+          ''
+        )}
+        {isRateEditingNow && (
+          <div>
+            <strong>페이스잇</strong>{' '}
+            <input
+              type='number'
+              value={nowUser.rate.faceit ?? 1000}
+              disabled={nowUser.rate.faceit === null}
+              name='score_input'
+              id='best5_score_input'
+              onChange={(e) =>
+                setRate({
+                  serverType: 'faceit',
+                  score: parseInt(e.target.value),
+                })
+              }
+            />
+            <input
+              type='checkbox'
+              name='not_play'
+              id='best5_not_play'
+              checked={nowUser.rate.faceit === null}
+              onChange={() =>
+                setRate({
+                  serverType: 'faceit',
+                  score: nowUser.rate.faceit === null ? 1000 : null,
+                })
+              }
+            />{' '}
+            <label htmlFor=''>이용안함</label>
+          </div>
+        )}
+        <h2>가능맵</h2>
+        <button onClick={() => setIsMapEditingNow((nowValue) => !nowValue)}>
+          {isMapEditingNow ? '수정완료' : '수정'}
+        </button>
+        {!isMapEditingNow &&
+          maps
+            .filter(({ name }) => nowUser.playableMaps.includes(name))
+            .map(({ nameKorean }) => <span>{nameKorean} </span>)}
+
+        {isMapEditingNow &&
+          maps.map(({ name, nameKorean }) => (
+            <>
+              <input
+                type='checkbox'
+                name='map_checkbox'
+                id={`map_checkbox_${name}`}
+                checked={nowUser.playableMaps.includes(name)}
+                onChange={() => setPlayableMaps(name)}
+              />
+              <label htmlFor={`map_checkbox_${name}`}>{nameKorean} </label>
+            </>
+          ))}
+        <h2>나이</h2>
+        <button onClick={() => setIsAgeEditingNow((nowValue) => !nowValue)}>
+          {isAgeEditingNow ? '수정완료' : '수정'}
+        </button>
+        {nowUser.age > 0 && !isAgeEditingNow ? `${nowUser.age}세` : ''}
+        {nowUser.age === 0 && !isAgeEditingNow ? `비공개` : ''}
+        {isAgeEditingNow && (
+          <div>
+            <input
+              type='number'
+              name='age_number'
+              id='age_input'
+              value={nowUser.age}
+              disabled={nowUser.age === 0}
+              onChange={(e) =>
+                setNowUser((nowUser) => {
+                  if (!nowUser) return nowUser;
+                  return { ...nowUser, age: parseInt(e.target.value) };
+                })
+              }
+            />
+            <input
+              type='checkbox'
+              name='age_private'
+              id='age_private_checkbox'
+              checked={nowUser.age === 0}
+              onChange={() =>
+                setNowUser((nowUser) => {
+                  if (!nowUser) return nowUser;
+                  return { ...nowUser, age: nowUser.age === 0 ? 20 : 0 };
+                })
+              }
+            />
+            <label htmlFor='age_private_checkbox'>공개하고 싶지 않아요</label>
+          </div>
+        )}
+
+        <h2>선호 게임 모드</h2>
+        <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
+          {isModeEditingNow ? '수정완료' : '수정'}
+        </button>
+        {!isModeEditingNow &&
+          modes
+            .filter(({ name }) => nowUser.preferredModes.includes(name))
+            .map(({ nameKorean }) => <span>{nameKorean} </span>)}
+        {isModeEditingNow &&
+          modes.map(({ name, nameKorean }) => (
+            <>
+              <input
+                type='checkbox'
+                name='mode_checkbox'
+                id={`mode_checkbox_${name}`}
+                checked={nowUser.preferredModes.includes(name)}
+                onChange={() => setPreferrendModes(name)}
+              />
+              <label htmlFor={`mode_checkbox_${name}`}>{nameKorean} </label>
+            </>
+          ))}
+        <button>갱신 후 리스트 올리기</button>
+        <button>채팅하기</button>
+      </>
     </>
   );
 }
