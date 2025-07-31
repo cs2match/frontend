@@ -7,12 +7,7 @@ import { ages } from '../constants/age';
 import { modes } from '../constants/mode';
 import type { User, UserFromServer } from '../types/user';
 import type { FilterStatus } from '../types/filter';
-const toggleElement = (arr: Array<any>, value: any) => {
-  return arr.includes(value)
-    ? arr.filter((element) => element !== value)
-    : [...arr, value];
-};
-
+import { toUser, toggleElement } from '../utils/utils';
 function Home() {
   const [filterStatus, setFilter] = useState<FilterStatus>({
     rate: {
@@ -48,36 +43,7 @@ function Home() {
           (a, b) =>
             new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
         )
-        .map(
-          ({
-            id,
-            name,
-            fiveE_rating,
-            best5_rating,
-            faceit_rating,
-            premier_rating,
-            map_selection,
-            mode_preference,
-            age,
-            date,
-          }): User => {
-            return {
-              id,
-              nickname: name,
-              profileUrl: 'https://cataas.com/cat',
-              rate: {
-                premier: premier_rating,
-                best5: best5_rating,
-                fiveE: fiveE_rating,
-                faceit: faceit_rating,
-              },
-              playableMaps: map_selection,
-              preferredModes: mode_preference,
-              age,
-              updateDate: date,
-            };
-          }
-        )
+        .map(toUser)
     );
   };
 

@@ -3,11 +3,7 @@ import { useParams } from 'react-router-dom';
 import { modes } from '../constants/mode';
 import { maps } from '../constants/map';
 import type { User, UserFromServer } from '../types/user';
-const toggleElement = (arr: Array<any>, value: any) => {
-  return arr.includes(value)
-    ? arr.filter((element) => element !== value)
-    : [...arr, value];
-};
+import { toggleElement, toUser } from '../utils/utils';
 export default function Profile() {
   const [nowUser, setNowUser] = useState<User>();
   const [isRateEditingNow, setIsRateEditingNow] = useState(false);
@@ -16,37 +12,12 @@ export default function Profile() {
   const [isModeEditingNow, setIsModeEditingNow] = useState(false);
   const { id } = useParams();
   const fetchUser = async (userId: string) => {
-    const {
-      id,
-      name,
-      best5_rating,
-      fiveE_rating,
-      faceit_rating,
-      premier_rating,
-      age,
-      mode_preference,
-      map_selection,
-      date,
-    }: UserFromServer = await (
+    const fetchedUser: UserFromServer = await (
       await fetch(`/user/${userId}`, {
         headers: { 'Content-Type': 'application/json' },
       })
     ).json();
-    setNowUser({
-      id,
-      nickname: name,
-      profileUrl: 'https://cataas.com/cat',
-      rate: {
-        premier: premier_rating,
-        best5: best5_rating,
-        fiveE: fiveE_rating,
-        faceit: faceit_rating,
-      },
-      playableMaps: map_selection,
-      preferredModes: mode_preference,
-      age,
-      updateDate: date,
-    });
+    setNowUser(toUser(fetchedUser));
   };
 
   const setRate = ({
