@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { dummyUsers } from './dummyUsers';
 import type { UserForRequest } from '../types/user';
-import { toUser } from '../utils/utils';
+import { toUser, toUserForRequest } from '../utils/utils';
 import type { FilterStatusForRequest } from '../types/filter';
 export const handlers = [
   http.post<{}, FilterStatusForRequest>('/userlist', async ({ request }) => {
@@ -67,30 +67,13 @@ export const handlers = [
             return false;
           return true;
         })
-        .map(
-          ({
-            rate,
-            age,
-            preferredModes,
-            playableMaps,
-            id,
-            nickname,
-            updateDate,
-          }) => {
-            return {
-              id,
-              name: nickname,
-              date: updateDate,
-              premier_rating: rate.premier,
-              fiveE_rating: rate.fiveE,
-              faceit_rating: rate.faceit,
-              best5_rating: rate.best5,
-              map_selection: playableMaps,
-              mode_preference: preferredModes,
-              age,
-            };
-          }
-        )
+        .map((user) => {
+          return {
+            ...toUserForRequest(user),
+            id: user.id,
+            date: user.updateDate,
+          };
+        })
     );
   }),
   http.get<{ id: string }>('/user/:id', ({ params }) => {
