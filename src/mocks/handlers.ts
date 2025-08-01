@@ -1,18 +1,10 @@
 import { http, HttpResponse } from 'msw';
 import { dummyUsers } from './dummyUsers';
-
+import type { UserForRequest } from '../types/user';
+import { toUser } from '../utils/utils';
+import type { FilterStatusForRequest } from '../types/filter';
 export const handlers = [
-  http.post<
-    {},
-    {
-      server: string;
-      rating_min: number;
-      rating_max: number;
-      map_selection: string[];
-      mode_preference: string[];
-      age_preference: number[];
-    }
-  >('/userlist', async ({ request }) => {
+  http.post<{}, FilterStatusForRequest>('/userlist', async ({ request }) => {
     const {
       server,
       rating_min,
@@ -86,7 +78,7 @@ export const handlers = [
             updateDate,
           }) => {
             return {
-              id: id,
+              id,
               name: nickname,
               date: updateDate,
               premier_rating: rate.premier,
@@ -124,4 +116,21 @@ export const handlers = [
       age,
     });
   }),
+  http.put<{ id: string }, UserForRequest>(
+    '/user/:id',
+    async ({ request, params }) => {
+      const requestJson = await request.json();
+      const indexToUpdate = dummyUsers.findIndex(
+        (user) => user.id === parseInt(params.id)
+      );
+      const newUser = {
+        ...requestJson,
+        id: parseInt(params.id),
+        date: new Date().toISOString(),
+      };
+
+      dummyUsers.splice(indexToUpdate, 1, toUser(newUser));
+      return HttpResponse.json(newUser);
+    }
+  ),
 ];

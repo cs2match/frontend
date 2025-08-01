@@ -13,8 +13,7 @@ export interface User {
   age: number;
   updateDate: string | null;
 }
-export interface UserFromServer {
-  id: number;
+export interface UserForRequest {
   name: string;
   premier_rating: number | null;
   fiveE_rating: number | null;
@@ -23,5 +22,8 @@ export interface UserFromServer {
   map_selection: string[];
   mode_preference: string[];
   age: number;
+}
+export interface UserFromServer extends UserForRequest {
+  id: number;
   date: string | null;
 }
