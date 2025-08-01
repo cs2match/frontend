@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { dummyUsers } from './dummyUsers';
+import { dummyChatInfoLists } from './dummyChats';
 import type { UserForRequest } from '../types/user';
 import { toUser, toUserForRequest } from '../utils/utils';
 import type { FilterStatusForRequest } from '../types/filter';
@@ -116,4 +117,17 @@ export const handlers = [
       return HttpResponse.json(newUser);
     }
   ),
+  http.post<{}, { senderId: number; receiverId: number; content: string }>(
+    '/chat',
+    async ({ request }) => {
+      const requestJson = await request.json();
+      return HttpResponse.json(requestJson);
+    }
+  ),
+  http.post<{}, { id: number }>('/chatlist', async ({ request }) => {
+    const requestJson = await request.json();
+    return HttpResponse.json(
+      dummyChatInfoLists.filter(({ id }) => id === requestJson.id)
+    );
+  }),
 ];
