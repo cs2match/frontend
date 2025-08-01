@@ -4,6 +4,7 @@ import './index.css';
 import Home from './pages/Home.tsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Profile from './pages/Profile.tsx';
+import Chat from './pages/Chat.tsx';
 async function enableMocking() {
   if (process.env.NODE_ENV !== 'development') {
     return;
@@ -21,6 +22,7 @@ enableMocking().then(() => {
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Home />} />
+          <Route path='/chat' element={<Chat />} />
           <Route path='/profile/:id' element={<Profile />} />
         </Routes>
       </BrowserRouter>
