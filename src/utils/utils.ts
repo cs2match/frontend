@@ -1,3 +1,4 @@
+import type { ChatInfo } from '../types/chats';
 import type { User, UserFromServer } from '../types/user';
 
 export const toggleElement = (arr: Array<any>, value: any) => {
@@ -51,3 +52,8 @@ export const toUserForRequest = ({
     age,
   };
 };
+
+export const compareRecent = (
+  a: UserFromServer | ChatInfo,
+  b: UserFromServer | ChatInfo
+) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();

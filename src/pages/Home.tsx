@@ -7,7 +7,7 @@ import { ages } from '../constants/age';
 import { modes } from '../constants/mode';
 import type { User, UserFromServer } from '../types/user';
 import type { FilterStatus } from '../types/filter';
-import { toUser, toggleElement } from '../utils/utils';
+import { compareRecent, toUser, toggleElement } from '../utils/utils';
 function Home() {
   const [filterStatus, setFilter] = useState<FilterStatus>({
     rate: {
@@ -37,14 +37,7 @@ function Home() {
         }),
       })
     ).json();
-    setUserArray(
-      fetchedJson
-        .sort(
-          (a, b) =>
-            new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
-        )
-        .map(toUser)
-    );
+    setUserArray(fetchedJson.sort(compareRecent).map(toUser));
   };
 
   useEffect(() => {
