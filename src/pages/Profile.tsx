@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { modes } from '../constants/mode';
 import { maps } from '../constants/map';
 import type { User, UserFromServer } from '../types/user';
-import { toggleElement, toUser } from '../utils/utils';
+import { toggleElement, toUser, toUserForRequest } from '../utils/utils';
 export default function Profile() {
   const [nowUser, setNowUser] = useState<User>();
   const [isRateEditingNow, setIsRateEditingNow] = useState(false);
@@ -11,6 +11,17 @@ export default function Profile() {
   const [isAgeEditingNow, setIsAgeEditingNow] = useState(false);
   const [isModeEditingNow, setIsModeEditingNow] = useState(false);
   const { id } = useParams();
+  const requestUserUpdate = async (userId: string) => {
+    if (!nowUser) return;
+    const fetchedUser: UserFromServer = await (
+      await fetch(`/user/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(toUserForRequest(nowUser)),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ).json();
+    setNowUser(toUser(fetchedUser));
+  };
   const fetchUser = async (userId: string) => {
     const fetchedUser: UserFromServer = await (
       await fetch(`/user/${userId}`, {
@@ -65,7 +76,7 @@ export default function Profile() {
     if (id) fetchUser(id);
   }, []);
 
-  if (!nowUser) return '죄송합니다. 현재 정보를 불러올 수 없습니다.';
+  if (!nowUser || !id) return '죄송합니다. 현재 정보를 불러올 수 없습니다.';
   return (
     <>
       <>
@@ -308,7 +319,9 @@ export default function Profile() {
               <label htmlFor={`mode_checkbox_${name}`}>{nameKorean} </label>
             </>
           ))}
-        <button>갱신 후 리스트 올리기</button>
+        <button onClick={() => requestUserUpdate(id)}>
+          갱신 후 리스트 올리기
+        </button>
         {nowUser.updateDate
           ? `마지막 갱신일자: ${nowUser.updateDate}`
           : '로그인 후 위의 올리기 버튼을 눌러야 리스트에 유저 정보가 표시됩니다.'}
