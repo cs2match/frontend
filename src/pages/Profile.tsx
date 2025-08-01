@@ -83,7 +83,6 @@ export default function Profile() {
         ) : (
           ''
         )}
-
         {isRateEditingNow && (
           <div>
             <strong>프리미어</strong>{' '}
@@ -239,7 +238,6 @@ export default function Profile() {
           maps
             .filter(({ name }) => nowUser.playableMaps.includes(name))
             .map(({ nameKorean }) => <span>{nameKorean} </span>)}
-
         {isMapEditingNow &&
           maps.map(({ name, nameKorean }) => (
             <>
@@ -289,7 +287,6 @@ export default function Profile() {
             <label htmlFor='age_private_checkbox'>공개하고 싶지 않아요</label>
           </div>
         )}
-
         <h2>선호 게임 모드</h2>
         <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
           {isModeEditingNow ? '수정완료' : '수정'}
@@ -312,6 +309,9 @@ export default function Profile() {
             </>
           ))}
         <button>갱신 후 리스트 올리기</button>
+        {nowUser.updateDate
+          ? `마지막 갱신일자: ${nowUser.updateDate}`
+          : '로그인 후 위의 올리기 버튼을 눌러야 리스트에 유저 정보가 표시됩니다.'}
         <button>채팅하기</button>
       </>
     </>
