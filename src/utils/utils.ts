@@ -33,3 +33,21 @@ export const toUser = ({
     updateDate: date,
   };
 };
+export const toUserForRequest = ({
+  nickname,
+  rate,
+  playableMaps,
+  preferredModes,
+  age,
+}: User) => {
+  return {
+    name: nickname,
+    premier_rating: rate.premier,
+    fiveE_rating: rate.fiveE,
+    faceit_rating: rate.faceit,
+    best5_rating: rate.best5,
+    map_selection: playableMaps,
+    mode_preference: preferredModes,
+    age,
+  };
+};
