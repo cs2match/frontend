@@ -212,7 +212,7 @@ function Home() {
                       .filter(({ name }) => preferredModes.includes(name))
                       .map(({ nameKorean }) => nameKorean)
                       .join(',')}
-                    / {age}세 / 갱신일 :{' '}
+                    / {age > 0 ? `${age}세` : '비공개 '} / 갱신일 :{' '}
                     {Math.floor(
                       (new Date().getTime() - new Date(updateDate).getTime()) /
                         (24 * 60 * 60000)
