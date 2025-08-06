@@ -54,6 +54,6 @@ export const toUserForRequest = ({
 };
 
 export const compareRecent = (
-  a: UserFromServer | ChatInfo,
-  b: UserFromServer | ChatInfo
+  a: { date: string | null },
+  b: { date: string | null }
 ) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();
