@@ -187,11 +187,26 @@ export const handlers = [
   http.get<{ senderId: string; receiverId: string }>(
     '/chat/:senderId/:receiverId',
     ({ params }) => {
-      const { senderId } = params;
+      const senderMessagesIndex = dummyUserChats.findIndex(
+        ({ id }) => id === parseInt(params.senderId)
+      );
       const stream = new ReadableStream({
         start(controller) {
+          controller.enqueue(
+            new TextEncoder().encode(
+              `data:${JSON.stringify(
+                dummyUserChats[senderMessagesIndex].messages.filter(
+                  ({ senderId, receiverId }) =>
+                    (receiverId === parseInt(params.receiverId) &&
+                      senderId === parseInt(params.senderId)) ||
+                    (senderId === parseInt(params.receiverId) &&
+                      receiverId === parseInt(params.senderId))
+                )
+              )}\n\n`
+            )
+          );
           sseClients.push({
-            connectedUserId: parseInt(senderId),
+            connectedUserId: parseInt(params.senderId),
             controller,
           });
         },
