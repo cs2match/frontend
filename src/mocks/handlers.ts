@@ -1,9 +1,13 @@
 import { http, HttpResponse } from 'msw';
 import { dummyUsers } from './dummyUsers';
-import { dummyChatInfoLists } from './dummyChats';
+import { dummyChatInfoLists, dummyUserChats } from './dummyChats';
 import type { UserForRequest } from '../types/user';
 import { toUser, toUserForRequest } from '../utils/utils';
 import type { FilterStatusForRequest } from '../types/filter';
+const sseClients: {
+  connectedUserId: number;
+  controller: ReadableStreamController<Uint8Array>;
+}[] = [];
 export const handlers = [
   http.post<{}, FilterStatusForRequest>('/userlist', async ({ request }) => {
     const {
@@ -121,6 +125,56 @@ export const handlers = [
     '/chat',
     async ({ request }) => {
       const requestJson = await request.json();
+
+      const senderMessagesIndex = dummyUserChats.findIndex(
+        ({ id }) => id === requestJson.senderId
+      );
+      const receiverMessagesIndex = dummyUserChats.findIndex(
+        ({ id }) => id === requestJson.receiverId
+      );
+      const newMessage = { ...requestJson, date: new Date().toISOString() };
+      dummyUserChats.splice(senderMessagesIndex, 1, {
+        ...dummyUserChats[senderMessagesIndex],
+        messages: [...dummyUserChats[senderMessagesIndex].messages, newMessage],
+      });
+      dummyUserChats.splice(receiverMessagesIndex, 1, {
+        ...dummyUserChats[receiverMessagesIndex],
+        messages: [
+          ...dummyUserChats[receiverMessagesIndex].messages,
+          newMessage,
+        ],
+      });
+      sseClients.forEach(({ connectedUserId, controller }) => {
+        if (requestJson.senderId === connectedUserId)
+          controller.enqueue(
+            new TextEncoder().encode(
+              `data:${JSON.stringify(
+                dummyUserChats[senderMessagesIndex].messages.filter(
+                  ({ receiverId, senderId }) =>
+                    (receiverId === requestJson.receiverId &&
+                      senderId === requestJson.senderId) ||
+                    (senderId === requestJson.receiverId &&
+                      receiverId === requestJson.senderId)
+                )
+              )}\n\n`
+            )
+          );
+        if (requestJson.receiverId === connectedUserId)
+          controller.enqueue(
+            new TextEncoder().encode(
+              `data:${JSON.stringify(
+                dummyUserChats[receiverMessagesIndex].messages.filter(
+                  ({ senderId, receiverId }) =>
+                    (receiverId === requestJson.receiverId &&
+                      senderId === requestJson.senderId) ||
+                    (senderId === requestJson.receiverId &&
+                      receiverId === requestJson.senderId)
+                )
+              )}\n\n`
+            )
+          );
+      });
+
       return HttpResponse.json(requestJson);
     }
   ),
@@ -130,4 +184,24 @@ export const handlers = [
       dummyChatInfoLists.filter(({ id }) => id === requestJson.id)
     );
   }),
+  http.get<{ senderId: string; receiverId: string }>(
+    '/chat/:senderId/:receiverId',
+    ({ params }) => {
+      const { senderId } = params;
+      const stream = new ReadableStream({
+        start(controller) {
+          sseClients.push({
+            connectedUserId: parseInt(senderId),
+            controller,
+          });
+        },
+      });
+      return new HttpResponse(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+  ),
 ];
