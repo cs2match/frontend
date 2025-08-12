@@ -4,6 +4,7 @@ import { modes } from '../constants/mode';
 import { maps } from '../constants/map';
 import type { User, UserFromServer } from '../types/user';
 import { toggleElement, toUser, toUserForRequest } from '../utils/utils';
+import AgeInput from '../components/AgeInput';
 export default function Profile() {
   const [nowUser, setNowUser] = useState<User>();
   const [isRateEditingNow, setIsRateEditingNow] = useState(false);
@@ -269,34 +270,15 @@ export default function Profile() {
         {nowUser.age > 0 && !isAgeEditingNow ? `${nowUser.age}세` : ''}
         {nowUser.age === 0 && !isAgeEditingNow ? `비공개` : ''}
         {isAgeEditingNow && (
-          <div>
-            <input
-              type='number'
-              name='age_number'
-              id='age_input'
-              value={nowUser.age}
-              disabled={nowUser.age === 0}
-              onChange={(e) =>
-                setNowUser((nowUser) => {
-                  if (!nowUser) return nowUser;
-                  return { ...nowUser, age: parseInt(e.target.value) };
-                })
-              }
-            />
-            <input
-              type='checkbox'
-              name='age_private'
-              id='age_private_checkbox'
-              checked={nowUser.age === 0}
-              onChange={() =>
-                setNowUser((nowUser) => {
-                  if (!nowUser) return nowUser;
-                  return { ...nowUser, age: nowUser.age === 0 ? 20 : 0 };
-                })
-              }
-            />
-            <label htmlFor='age_private_checkbox'>공개하고 싶지 않아요</label>
-          </div>
+          <AgeInput
+            age={nowUser.age}
+            setAge={(age) => {
+              setNowUser((nowUser) => {
+                if (!nowUser) return nowUser;
+                return { ...nowUser, age };
+              });
+            }}
+          />
         )}
         <h2>선호 게임 모드</h2>
         <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
