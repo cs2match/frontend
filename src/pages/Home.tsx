@@ -8,6 +8,7 @@ import { modes } from '../constants/mode';
 import type { User, UserFromServer } from '../types/user';
 import type { FilterStatus } from '../types/filter';
 import { compareRecent, toUser, toggleElement } from '../utils/utils';
+import MapCheckbox from '../components/MapCheckbox';
 function Home() {
   const [filterStatus, setFilter] = useState<FilterStatus>({
     rate: {
@@ -126,20 +127,10 @@ function Home() {
         </div>
         <div>
           가능 맵 <br />
-          {maps.map(({ name, nameKorean }) => (
-            <>
-              <input
-                type='checkbox'
-                name='map'
-                id={`map_${name}`}
-                checked={filterStatus.playableMaps.includes(name)}
-                onChange={() => {
-                  setPlayableMaps(name);
-                }}
-              />{' '}
-              <label htmlFor={`map_${name}`}>{nameKorean}</label>
-            </>
-          ))}
+          <MapCheckbox
+            nowCheck={filterStatus.playableMaps}
+            setChecked={setPlayableMaps}
+          ></MapCheckbox>
         </div>
         <div>
           선호 게임 모드 <br />
