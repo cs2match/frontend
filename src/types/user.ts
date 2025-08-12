@@ -27,3 +27,8 @@ export interface UserFromServer extends UserForRequest {
   id: number;
   date: string | null;
 }
+
+export interface UserDetail extends User {
+  email: string;
+  password: string;
+}
