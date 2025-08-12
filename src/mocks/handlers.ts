@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
-import { dummyUsers } from './dummyUsers';
+import { dummyDetailUsers, dummyUsers } from './dummyUsers';
 import { dummyChatInfoLists, dummyUserChats } from './dummyChats';
-import type { UserForRequest } from '../types/user';
+import type { UserDetail, UserForRequest } from '../types/user';
 import { toUser, toUserForRequest } from '../utils/utils';
 import type { FilterStatusForRequest } from '../types/filter';
 const sseClients: {
@@ -220,4 +220,70 @@ export const handlers = [
       });
     }
   ),
+  http.post<{}, { email: string }>(
+    '/user/duplicate_check',
+    async ({ request }) => {
+      const { email } = await request.json();
+      const matchedUsers = dummyDetailUsers.filter(
+        (user) => user.email === email
+      );
+      if (matchedUsers.length > 0)
+        return HttpResponse.json({ isDuplicated: true });
+      return HttpResponse.json({ isDuplicated: false });
+    }
+  ),
+  http.post<
+    {},
+    {
+      name: string;
+      email: string;
+      password: string;
+      map_selection: string[];
+      age: number;
+    }
+  >('/user/register', async ({ request }) => {
+    const requestJson = await request.json();
+    const newUser: UserDetail = {
+      ...requestJson,
+      preferredModes: [],
+      playableMaps: requestJson.map_selection,
+      rate: {
+        premier: null,
+        best5: null,
+        fiveE: null,
+        faceit: null,
+      },
+      nickname: requestJson.name,
+      id: dummyUserChats.length + 1,
+      profileUrl: 'http://cataas.com/cat?width=50',
+      updateDate: null,
+    };
+    dummyDetailUsers.push(newUser);
+    dummyUsers.push(newUser);
+    return HttpResponse.json({
+      id: newUser.id,
+      name: newUser.nickname,
+      map_selection: newUser.playableMaps,
+      age: newUser.age,
+    });
+  }),
+  http.post<
+    {},
+    {
+      email: string;
+      password: string;
+    }
+  >('/user/login', async ({ request }) => {
+    const requestJson = await request.json();
+    const emailMatchedUsers = dummyDetailUsers.filter(({ email }) => {
+      email === requestJson.email;
+    });
+    if (
+      emailMatchedUsers.length > 0 &&
+      emailMatchedUsers[0].password === requestJson.password
+    ) {
+      return HttpResponse.json({ isSuccess: true });
+    }
+    return HttpResponse.json({ isSuccess: false });
+  }),
 ];
