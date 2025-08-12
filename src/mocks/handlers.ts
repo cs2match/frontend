@@ -178,10 +178,11 @@ export const handlers = [
       return HttpResponse.json(requestJson);
     }
   ),
-  http.post<{}, { id: number }>('/chatlist', async ({ request }) => {
+  http.post<{}, { id: string }>('/chatlist', async ({ request }) => {
     const requestJson = await request.json();
     return HttpResponse.json(
-      dummyChatInfoLists.filter(({ id }) => id === requestJson.id)
+      dummyChatInfoLists.filter(({ id }) => id === parseInt(requestJson.id))[0]
+        .chatInfoList
     );
   }),
   http.get<{ senderId: string; receiverId: string }>(
