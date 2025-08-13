@@ -276,7 +276,7 @@ export const handlers = [
   >('/user/login', async ({ request }) => {
     const requestJson = await request.json();
     const emailMatchedUsers = dummyDetailUsers.filter(({ email }) => {
-      email === requestJson.email;
+      return email === requestJson.email;
     });
     if (
       emailMatchedUsers.length > 0 &&
