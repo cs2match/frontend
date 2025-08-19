@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css';
 import { maps } from '../constants/map';
 import { servers } from '../constants/server';
@@ -10,6 +10,9 @@ import type { FilterStatus } from '../types/filter';
 import { compareRecent, toUser, toggleElement } from '../utils/utils';
 import MapCheckbox from '../components/MapCheckbox';
 function Home() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('user_id');
   const [filterStatus, setFilter] = useState<FilterStatus>({
     rate: {
       serverType: 'cs2_premier',
@@ -23,7 +26,7 @@ function Home() {
 
   const fetchUserList = async (filterStatus: FilterStatus) => {
     const fetchedJson: UserFromServer[] = await (
-      await fetch('/userlist', {
+      await fetch('/api/userlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -38,7 +41,20 @@ function Home() {
         }),
       })
     ).json();
-    setUserArray(fetchedJson.sort(compareRecent).map(toUser));
+    setUserArray(
+      fetchedJson
+        .map((user) => {
+          return {
+            ...user,
+            name: user.nickname ?? '',
+            map_selection: user.available_maps ?? [],
+            mode_preference: user.preferred_modes ?? [],
+            date: user.updated_at,
+          };
+        })
+        .sort(compareRecent)
+        .map(toUser)
+    );
   };
 
   useEffect(() => {
@@ -92,6 +108,25 @@ function Home() {
       <Link to='/'>
         <img src='logo.svg' alt='로고' />
       </Link>
+      {token ? (
+        <>
+          <span
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user_id');
+              navigate('/');
+            }}
+          >
+            로그아웃
+          </span>
+          <Link to={`/profile/${userId}`}>프로필</Link>
+        </>
+      ) : (
+        <>
+          <Link to='/login'>로그인</Link>
+          <Link to='/register'>회원가입</Link>
+        </>
+      )}
       <div>
         필터
         <div>
@@ -191,9 +226,9 @@ function Home() {
                     />{' '}
                     / {nickname} /
                     {rate.premier ? `프리미어: ${rate.premier}` : ''}
-                    {rate.fiveE ? `5E: ${rate.fiveE}` : ''}
+                    {rate.fivewin ? `5E: ${rate.fivewin}` : ''}
                     {rate.faceit ? `페이스잇: ${rate.faceit}` : ''}
-                    {rate.best5 ? `베스트파이브: ${rate.best5}` : ''}/
+                    {rate.bestfive ? `베스트파이브: ${rate.bestfive}` : ''}/
                     {maps
                       .filter(({ name }) => playableMaps.includes(name))
                       .map(({ nameKorean }) => nameKorean)
