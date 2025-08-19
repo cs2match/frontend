@@ -12,20 +12,25 @@ export default function Profile() {
   const [isAgeEditingNow, setIsAgeEditingNow] = useState(false);
   const [isModeEditingNow, setIsModeEditingNow] = useState(false);
   const { id } = useParams();
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('user_id');
   const requestUserUpdate = async (userId: string) => {
     if (!nowUser) return;
     const fetchedUser: UserFromServer = await (
-      await fetch(`/user/${userId}`, {
+      await fetch(`/api/user/${userId}`, {
         method: 'PUT',
         body: JSON.stringify(toUserForRequest(nowUser)),
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       })
     ).json();
     setNowUser(toUser(fetchedUser));
   };
   const fetchUser = async (userId: string) => {
     const fetchedUser: UserFromServer = await (
-      await fetch(`/user/${userId}`, {
+      await fetch(`/api/user/${userId}`, {
         headers: { 'Content-Type': 'application/json' },
       })
     ).json();
@@ -37,17 +42,17 @@ export default function Profile() {
     score,
   }: {
     serverType: string;
-    score: number | null;
+    score: number;
   }) => {
     setNowUser((nowUser) => {
       if (!nowUser) return nowUser;
       switch (serverType) {
         case 'cs2_premier':
           return { ...nowUser, rate: { ...nowUser.rate, premier: score } };
-        case 'fiveE':
-          return { ...nowUser, rate: { ...nowUser.rate, fiveE: score } };
-        case 'best5':
-          return { ...nowUser, rate: { ...nowUser.rate, best5: score } };
+        case 'fivewin':
+          return { ...nowUser, rate: { ...nowUser.rate, fivewin: score } };
+        case 'bestfive':
+          return { ...nowUser, rate: { ...nowUser.rate, bestfive: score } };
         case 'faceit':
           return { ...nowUser, rate: { ...nowUser.rate, faceit: score } };
         default:
@@ -85,9 +90,11 @@ export default function Profile() {
         <br />
         {nowUser.nickname}
         <h2>레이팅</h2>
-        <button onClick={() => setIsRateEditingNow((nowValue) => !nowValue)}>
-          {isRateEditingNow ? '수정완료' : '수정'}
-        </button>
+        {userId === id && token && (
+          <button onClick={() => setIsRateEditingNow((nowValue) => !nowValue)}>
+            {isRateEditingNow ? '수정완료' : '수정'}
+          </button>
+        )}
         {nowUser.rate.premier && !isRateEditingNow ? (
           <div>
             <strong>프리미어</strong> {nowUser.rate.premier}
@@ -100,8 +107,8 @@ export default function Profile() {
             <strong>프리미어</strong>{' '}
             <input
               type='number'
-              value={nowUser.rate.premier ?? 1000}
-              disabled={nowUser.rate.premier === null}
+              value={nowUser.rate.premier}
+              disabled={nowUser.rate.premier === 0}
               name='score_input'
               id='cs2_premier_score_input'
               onChange={(e) =>
@@ -115,20 +122,20 @@ export default function Profile() {
               type='checkbox'
               name='not_play'
               id='cs2_premier_not_play'
-              checked={nowUser.rate.premier === null}
+              checked={nowUser.rate.premier === 0}
               onChange={() =>
                 setRate({
                   serverType: 'cs2_premier',
-                  score: nowUser.rate.premier === null ? 1000 : null,
+                  score: nowUser.rate.premier === 0 ? 1 : 0,
                 })
               }
             />{' '}
             <label htmlFor=''>이용안함</label>
           </div>
         )}
-        {nowUser.rate.fiveE && !isRateEditingNow ? (
+        {nowUser.rate.fivewin && !isRateEditingNow ? (
           <div>
-            <strong>5E</strong> {nowUser.rate.fiveE}
+            <strong>5E</strong> {nowUser.rate.fivewin}
           </div>
         ) : (
           ''
@@ -138,13 +145,13 @@ export default function Profile() {
             <strong>5E</strong>{' '}
             <input
               type='number'
-              value={nowUser.rate.fiveE ?? 1000}
-              disabled={nowUser.rate.fiveE === null}
+              value={nowUser.rate.fivewin}
+              disabled={nowUser.rate.fivewin === 0}
               name='score_input'
-              id='fiveE_score_input'
+              id='fivewin_score_input'
               onChange={(e) =>
                 setRate({
-                  serverType: 'fiveE',
+                  serverType: 'fivewin',
                   score: parseInt(e.target.value),
                 })
               }
@@ -152,22 +159,22 @@ export default function Profile() {
             <input
               type='checkbox'
               name='not_play'
-              id='fiveE_not_play'
-              checked={nowUser.rate.fiveE === null}
+              id='fivewin_not_play'
+              checked={nowUser.rate.fivewin === 0}
               onChange={() =>
                 setRate({
-                  serverType: 'fiveE',
-                  score: nowUser.rate.fiveE === null ? 1000 : null,
+                  serverType: 'fivewin',
+                  score: nowUser.rate.fivewin === 0 ? 1 : 0,
                 })
               }
             />{' '}
             <label htmlFor=''>이용안함</label>
           </div>
         )}
-        {nowUser.rate.best5 && !isRateEditingNow ? (
+        {nowUser.rate.bestfive && !isRateEditingNow ? (
           <div>
             <strong>베스트파이브</strong>
-            {nowUser.rate.best5}
+            {nowUser.rate.bestfive}
           </div>
         ) : (
           ''
@@ -177,13 +184,13 @@ export default function Profile() {
             <strong>베스트파이브</strong>{' '}
             <input
               type='number'
-              value={nowUser.rate.best5 ?? 1000}
-              disabled={nowUser.rate.best5 === null}
+              value={nowUser.rate.bestfive}
+              disabled={nowUser.rate.bestfive === 0}
               name='score_input'
-              id='best5_score_input'
+              id='bestfive_score_input'
               onChange={(e) =>
                 setRate({
-                  serverType: 'best5',
+                  serverType: 'bestfive',
                   score: parseInt(e.target.value),
                 })
               }
@@ -191,12 +198,12 @@ export default function Profile() {
             <input
               type='checkbox'
               name='not_play'
-              id='best5_not_play'
-              checked={nowUser.rate.best5 === null}
+              id='bestfive_not_play'
+              checked={nowUser.rate.bestfive === 0}
               onChange={() =>
                 setRate({
-                  serverType: 'best5',
-                  score: nowUser.rate.best5 === null ? 1000 : null,
+                  serverType: 'bestfive',
+                  score: nowUser.rate.bestfive === 0 ? 1 : 0,
                 })
               }
             />{' '}
@@ -216,10 +223,10 @@ export default function Profile() {
             <strong>페이스잇</strong>{' '}
             <input
               type='number'
-              value={nowUser.rate.faceit ?? 1000}
-              disabled={nowUser.rate.faceit === null}
+              value={nowUser.rate.faceit}
+              disabled={nowUser.rate.faceit === 0}
               name='score_input'
-              id='best5_score_input'
+              id='bestfive_score_input'
               onChange={(e) =>
                 setRate({
                   serverType: 'faceit',
@@ -230,12 +237,12 @@ export default function Profile() {
             <input
               type='checkbox'
               name='not_play'
-              id='best5_not_play'
-              checked={nowUser.rate.faceit === null}
+              id='bestfive_not_play'
+              checked={nowUser.rate.faceit === 0}
               onChange={() =>
                 setRate({
                   serverType: 'faceit',
-                  score: nowUser.rate.faceit === null ? 1000 : null,
+                  score: nowUser.rate.faceit === 0 ? 1 : 0,
                 })
               }
             />{' '}
@@ -243,9 +250,11 @@ export default function Profile() {
           </div>
         )}
         <h2>가능맵</h2>
-        <button onClick={() => setIsMapEditingNow((nowValue) => !nowValue)}>
-          {isMapEditingNow ? '수정완료' : '수정'}
-        </button>
+        {userId === id && token && (
+          <button onClick={() => setIsMapEditingNow((nowValue) => !nowValue)}>
+            {isMapEditingNow ? '수정완료' : '수정'}
+          </button>
+        )}
         {!isMapEditingNow &&
           maps
             .filter(({ name }) => nowUser.playableMaps.includes(name))
@@ -264,9 +273,11 @@ export default function Profile() {
             </>
           ))}
         <h2>나이</h2>
-        <button onClick={() => setIsAgeEditingNow((nowValue) => !nowValue)}>
-          {isAgeEditingNow ? '수정완료' : '수정'}
-        </button>
+        {userId === id && token && (
+          <button onClick={() => setIsAgeEditingNow((nowValue) => !nowValue)}>
+            {isAgeEditingNow ? '수정완료' : '수정'}
+          </button>
+        )}
         {nowUser.age > 0 && !isAgeEditingNow ? `${nowUser.age}세` : ''}
         {nowUser.age === 0 && !isAgeEditingNow ? `비공개` : ''}
         {isAgeEditingNow && (
@@ -281,9 +292,11 @@ export default function Profile() {
           />
         )}
         <h2>선호 게임 모드</h2>
-        <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
-          {isModeEditingNow ? '수정완료' : '수정'}
-        </button>
+        {userId === id && token && (
+          <button onClick={() => setIsModeEditingNow((nowValue) => !nowValue)}>
+            {isModeEditingNow ? '수정완료' : '수정'}
+          </button>
+        )}
         {!isModeEditingNow &&
           modes
             .filter(({ name }) => nowUser.preferredModes.includes(name))
@@ -301,13 +314,15 @@ export default function Profile() {
               <label htmlFor={`mode_checkbox_${name}`}>{nameKorean} </label>
             </>
           ))}
-        <button onClick={() => requestUserUpdate(id)}>
-          갱신 후 리스트 올리기
-        </button>
+        {userId === id && token && (
+          <button onClick={() => requestUserUpdate(id)}>
+            갱신 후 리스트 올리기
+          </button>
+        )}
         {nowUser.updateDate
           ? `마지막 갱신일자: ${nowUser.updateDate}`
           : '로그인 후 위의 올리기 버튼을 눌러야 리스트에 유저 정보가 표시됩니다.'}
-        <button>채팅하기</button>
+        {userId === id && token && <button>채팅하기</button>}
       </>
     </>
   );
