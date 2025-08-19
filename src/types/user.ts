@@ -3,10 +3,10 @@ export interface User {
   profileUrl: string;
   nickname: string;
   rate: {
-    premier: number | null;
-    fiveE: number | null;
-    best5: number | null;
-    faceit: number | null;
+    premier: number;
+    fivewin: number;
+    bestfive: number;
+    faceit: number;
   };
   playableMaps: string[];
   preferredModes: string[];
@@ -15,10 +15,10 @@ export interface User {
 }
 export interface UserForRequest {
   name: string;
-  premier_rating: number | null;
-  fiveE_rating: number | null;
-  best5_rating: number | null;
-  faceit_rating: number | null;
+  premier_rating: number;
+  fivewin_rating: number;
+  bestfive_rating: number;
+  faceit_rating: number;
   map_selection: string[];
   mode_preference: string[];
   age: number;
@@ -26,6 +26,10 @@ export interface UserForRequest {
 export interface UserFromServer extends UserForRequest {
   id: number;
   date: string | null;
+  nickname?: string;
+  available_maps?: string[];
+  preferred_modes?: string[];
+  updated_at: string;
 }
 
 export interface UserDetail extends User {
