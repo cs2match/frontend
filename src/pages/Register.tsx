@@ -36,14 +36,14 @@ export default function Register() {
   const requestRegister = async () => {
     if (!validate()) return false;
     try {
-      const response = await fetch('user/register', {
+      const response = await fetch('/api/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email,
-          nickname,
+          name: nickname,
           age,
           password,
           map_selection: playableMaps,
@@ -57,7 +57,7 @@ export default function Register() {
   };
   const checkEmailDuplicated = async (email: string) => {
     try {
-      const response = await fetch('user/duplicate_check', {
+      const response = await fetch('/api/user/duplicate_check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

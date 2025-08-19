@@ -5,7 +5,7 @@ export default function Login() {
   let navigate = useNavigate();
   const requestLogin = async (email: string, password: string) => {
     try {
-      const response = await fetch('user/login', {
+      const response = await fetch('/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -15,6 +15,8 @@ export default function Login() {
       if (!response.ok) throw new Error('HTTP 오류');
       const json = await response.json();
       if (!json.isSuccess) return false;
+      localStorage.setItem('token', json.access_token);
+      localStorage.setItem('user_id', json.user_id);
       return true;
     } catch (error) {
       console.error(error);
@@ -46,6 +48,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   return (
     <>
+      <h1>로그인</h1>
       <label htmlFor='email_input'>이메일</label>
       <input
         type='email'
