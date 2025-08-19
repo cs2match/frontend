@@ -4,6 +4,9 @@ import { dummyChatInfoLists, dummyUserChats } from './dummyChats';
 import type { UserDetail, UserForRequest } from '../types/user';
 import { toUser, toUserForRequest } from '../utils/utils';
 import type { FilterStatusForRequest } from '../types/filter';
+
+const DUMMY_TOKEN = 'rush';
+
 const sseClients: {
   connectedUserId: number;
   controller: ReadableStreamController<Uint8Array>;
@@ -42,8 +45,8 @@ export const handlers = [
             return false;
           }
           if (rate.premier === null && server === 'cs2_premier') return false;
-          if (rate.fiveE === null && server === 'fiveE') return false;
-          if (rate.best5 === null && server === 'best5') return false;
+          if (rate.fivewin === null && server === 'fivewin') return false;
+          if (rate.bestfive === null && server === 'bestfive') return false;
           if (rate.faceit === null && server === 'faceit') return false;
 
           if (
@@ -53,15 +56,15 @@ export const handlers = [
           )
             return false;
           if (
-            rate.fiveE &&
-            server === 'fiveE' &&
-            (rating_min > rate.fiveE || rating_max < rate.fiveE)
+            rate.fivewin &&
+            server === 'fivewin' &&
+            (rating_min > rate.fivewin || rating_max < rate.fivewin)
           )
             return false;
           if (
-            rate.best5 &&
-            server === 'best5' &&
-            (rating_min > rate.best5 || rating_max < rate.best5)
+            rate.bestfive &&
+            server === 'bestfive' &&
+            (rating_min > rate.bestfive || rating_max < rate.bestfive)
           )
             return false;
           if (
@@ -96,9 +99,9 @@ export const handlers = [
       name: nickname,
       date: updateDate,
       premier_rating: rate.premier,
-      fiveE_rating: rate.fiveE,
+      fivewin_rating: rate.fivewin,
       faceit_rating: rate.faceit,
-      best5_rating: rate.best5,
+      bestfive_rating: rate.bestfive,
       map_selection: playableMaps,
       mode_preference: preferredModes,
       age,
@@ -107,6 +110,10 @@ export const handlers = [
   http.put<{ id: string }, UserForRequest>(
     '/user/:id',
     async ({ request, params }) => {
+      const token = request.headers.get('Authorization')?.split(' ')[1];
+      if (!token || token !== DUMMY_TOKEN) {
+        return new HttpResponse(null, { status: 403 });
+      }
       const requestJson = await request.json();
       const indexToUpdate = dummyUsers.findIndex(
         (user) => user.id === parseInt(params.id)
@@ -124,6 +131,10 @@ export const handlers = [
   http.post<{}, { senderId: number; receiverId: number; content: string }>(
     '/chat',
     async ({ request }) => {
+      const token = request.headers.get('Authorization')?.split(' ')[1];
+      if (!token || token !== DUMMY_TOKEN) {
+        return new HttpResponse(null, { status: 403 });
+      }
       const requestJson = await request.json();
 
       const senderMessagesIndex = dummyUserChats.findIndex(
@@ -179,6 +190,10 @@ export const handlers = [
     }
   ),
   http.post<{}, { id: string }>('/chatlist', async ({ request }) => {
+    const token = request.headers.get('Authorization')?.split(' ')[1];
+    if (!token || token !== DUMMY_TOKEN) {
+      return new HttpResponse(null, { status: 403 });
+    }
     const requestJson = await request.json();
     return HttpResponse.json(
       dummyChatInfoLists.filter(({ id }) => id === parseInt(requestJson.id))[0]
@@ -187,7 +202,11 @@ export const handlers = [
   }),
   http.get<{ senderId: string; receiverId: string }>(
     '/chat/:senderId/:receiverId',
-    ({ params }) => {
+    ({ request, params }) => {
+      const token = request.headers.get('Authorization')?.split(' ')[1];
+      if (!token || token !== DUMMY_TOKEN) {
+        return new HttpResponse(null, { status: 403 });
+      }
       const senderMessagesIndex = dummyUserChats.findIndex(
         ({ id }) => id === parseInt(params.senderId)
       );
@@ -248,10 +267,10 @@ export const handlers = [
       preferredModes: [],
       playableMaps: requestJson.map_selection,
       rate: {
-        premier: null,
-        best5: null,
-        fiveE: null,
-        faceit: null,
+        premier: 0,
+        bestfive: 0,
+        fivewin: 0,
+        faceit: 0,
       },
       nickname: requestJson.name,
       id: dummyUserChats.length + 1,
@@ -282,7 +301,7 @@ export const handlers = [
       emailMatchedUsers.length > 0 &&
       emailMatchedUsers[0].password === requestJson.password
     ) {
-      return HttpResponse.json({ isSuccess: true });
+      return HttpResponse.json({ isSuccess: true, access_token: DUMMY_TOKEN });
     }
     return HttpResponse.json({ isSuccess: false });
   }),
