@@ -29,7 +29,7 @@ export interface UserFromServer extends UserForRequest {
   nickname?: string;
   available_maps?: string[];
   preferred_modes?: string[];
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface UserDetail extends User {

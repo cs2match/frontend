@@ -49,7 +49,7 @@ function Home() {
             name: user.nickname ?? '',
             map_selection: user.available_maps ?? [],
             mode_preference: user.preferred_modes ?? [],
-            date: user.updated_at,
+            date: user.updated_at ?? '',
           };
         })
         .sort(compareRecent)
